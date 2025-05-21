@@ -13,6 +13,7 @@
 // Included Files
 //
 #include <bu_adc.h>
+#include "board.h"
 
 //
 // Global Variables
@@ -57,60 +58,61 @@ static int debugCounter = 0;
      configureLED();
 
      // Enable ADC modules
-     ADC_enableConverter(ADCA_BASE);
-     ADC_enableConverter(ADCE_BASE);
+     ADC_enableConverter(myADC0_BASE);
+     ADC_enableConverter(myADC1_BASE);
 
      // Configure ADC reference voltage
-     ADC_setVREF(ADCA_BASE, ADC_REFERENCE_INTERNAL, ADC_REFERENCE_3_3V);
+     ADC_setVREF(myADC0_BASE, ADC_REFERENCE_INTERNAL, ADC_REFERENCE_3_3V);
+     ADC_setVREF(myADC1_BASE, ADC_REFERENCE_INTERNAL, ADC_REFERENCE_3_3V);
 
      // Delay for ADC power up
      DEVICE_DELAY_US(1000);
 
      // Configure ADC SOCs for all channels
      // ADCA channels
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER0, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER0, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN0, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER1, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER1, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN1, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER2, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER2, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN2, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER3, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER3, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN3, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER4, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER4, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN4, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER5, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER5, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN5, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER6, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER6, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN14, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER7, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER7, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN15, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER8, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER8, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN8, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER9, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER9, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN9, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER10, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER10, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN10, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER11, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER11, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN11, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER12, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER12, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN12, 15);
-     ADC_setupSOC(ADCA_BASE, ADC_SOC_NUMBER13, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC0_BASE, ADC_SOC_NUMBER13, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN13, 15);
 
      // ADCE channels
-     ADC_setupSOC(ADCE_BASE, ADC_SOC_NUMBER0, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC1_BASE, ADC_SOC_NUMBER0, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN2, 15);
-     ADC_setupSOC(ADCE_BASE, ADC_SOC_NUMBER1, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC1_BASE, ADC_SOC_NUMBER1, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN3, 15);
-     ADC_setupSOC(ADCE_BASE, ADC_SOC_NUMBER2, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC1_BASE, ADC_SOC_NUMBER2, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN4, 15);
-     ADC_setupSOC(ADCE_BASE, ADC_SOC_NUMBER3, ADC_TRIGGER_EPWM1_SOCA,
+     ADC_setupSOC(myADC1_BASE, ADC_SOC_NUMBER3, ADC_TRIGGER_EPWM1_SOCA,
                   ADC_CH_ADCIN5, 15);
 
      // Configure ADC interrupt after last conversion
-     ADC_setInterruptSource(ADCA_BASE, ADC_INT_NUMBER1, ADC_INT_TRIGGER_EOC13);
-     ADC_clearInterruptStatus(ADCA_BASE, ADC_INT_NUMBER1);
-     ADC_enableInterrupt(ADCA_BASE, ADC_INT_NUMBER1);
+     ADC_setInterruptSource(myADC0_BASE, ADC_INT_NUMBER1, ADC_INT_TRIGGER_EOC13);
+     ADC_clearInterruptStatus(myADC0_BASE, ADC_INT_NUMBER1);
+     ADC_enableInterrupt(myADC0_BASE, ADC_INT_NUMBER1);
 
      // Register interrupt handler
      Interrupt_register(INT_ADCA1, &adcA1ISR);
@@ -133,6 +135,9 @@ static int debugCounter = 0;
      // Initialize sFlag structure
      static dww_structflag flagStruct = {0};
      sFlag = &flagStruct;
+
+     // Initialize ePWM
+     initEPWM();
 
      // Start ePWM in UP counting mode
      EPWM_enableADCTrigger(EPWM1_BASE, EPWM_SOC_A);
@@ -225,24 +230,24 @@ __interrupt void adcA1ISR(void)
     // Read ADC conversion results for NUM_CHANNELS.
     // Offsets are applied as in your original code.
     //
-    myADC0Results[0]  = (signed int)(ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER0) - 2048);
-    myADC0Results[1]  = (signed int)ADC_readResult(ADCERESULT_BASE, ADC_SOC_NUMBER2) - 2048;
-    myADC0Results[2]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER1) - 2048;
-    myADC0Results[3]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER2) - 2048;
-    myADC0Results[4]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER3) - 2048;
-    myADC0Results[5]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER4) - 2048;
-    myADC0Results[6]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER5) - 2048;
-    myADC0Results[7]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER6) - 2048;
-    myADC0Results[8]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER7) - 2048;
-    myADC0Results[9]  = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER8) - 2048;
-    myADC0Results[10] = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER9) - 2048;
-    myADC0Results[11] = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER10) - 2048;
-    myADC0Results[12] = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER11) - 2048;
-    myADC0Results[13] = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER12) - 2048;
-    myADC0Results[14] = (signed int)ADC_readResult(ADCERESULT_BASE, ADC_SOC_NUMBER3) - 2048;
-    myADC0Results[15] = (signed int)ADC_readResult(ADCERESULT_BASE, ADC_SOC_NUMBER0) - 2048;
-    myADC0Results[16] = (signed int)ADC_readResult(ADCERESULT_BASE, ADC_SOC_NUMBER1) - 2048;
-    myADC0Results[17] = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER13) - 2048;
+    myADC0Results[0]  = (signed int)(ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER0) - 2048);
+    myADC0Results[1]  = (signed int)ADC_readResult(myADC1_RESULT_BASE, ADC_SOC_NUMBER2) - 2048;
+    myADC0Results[2]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER1) - 2048;
+    myADC0Results[3]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER2) - 2048;
+    myADC0Results[4]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER3) - 2048;
+    myADC0Results[5]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER4) - 2048;
+    myADC0Results[6]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER5) - 2048;
+    myADC0Results[7]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER6) - 2048;
+    myADC0Results[8]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER7) - 2048;
+    myADC0Results[9]  = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER8) - 2048;
+    myADC0Results[10] = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER9) - 2048;
+    myADC0Results[11] = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER10) - 2048;
+    myADC0_Results[12] = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER11) - 2048;
+    myADC0Results[13] = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER12) - 2048;
+    myADC0Results[14] = (signed int)ADC_readResult(myADC1_RESULT_BASE, ADC_SOC_NUMBER3) - 2048;
+    myADC0Results[15] = (signed int)ADC_readResult(myADC1_RESULT_BASE, ADC_SOC_NUMBER0) - 2048;
+    myADC0Results[16] = (signed int)ADC_readResult(myADC1_RESULT_BASE, ADC_SOC_NUMBER1) - 2048;
+    myADC0Results[17] = (signed int)ADC_readResult(myADC0_RESULT_BASE, ADC_SOC_NUMBER13) - 2048;
 
     //
     // For each channel, square the result and accumulate it.
@@ -299,7 +304,7 @@ __interrupt void adcA1ISR(void)
     //
     // Acknowledge the interrupt.
     //
-    Interrupt_clearACKGroup(INT_myADC0_1_INTERRUPT_ACK_GROUP);
+    Interrupt_clearACKGroup(INTERRUPT_ACK_GROUP1);
 }
 //
 // BU_ADC_processLoop - Main processing loop for ADC module

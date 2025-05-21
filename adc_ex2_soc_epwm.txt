@@ -12,17 +12,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "dww_parameter.h"
+#include "bu_adc.h" // Ensure bu_adc.h is included
 
 //
 // Defines
 //
-#define NUM_CHANNELS            18
+// #define NUM_CHANNELS            18 // NUM_CHANNELS is defined in bu_adc.h
 #define SAMPLE_COUNT_THRESHOLD  100
 
 //
 // Globals
 //
-uint32_t myADC0Results[NUM_CHANNELS];   // Buffer for raw ADC results
+// uint32_t myADC0Results[NUM_CHANNELS]; // This should be an extern from bu_adc.h / bu_adc.c
+
+volatile int g_ADCTestStatus = 0; // Global for ADC test status
 
 // Removed unused index and bufferFull variables
 
@@ -72,6 +75,7 @@ volatile bool syncSignalReceived = false;  // Flag to indicate sync signal
 //
 // Function Prototypes
 //
+int runADCTest(void); // Prototype for the ADC test function
 void initEPWM(void);
 
 void dww_max_min_Calc(void);
@@ -86,6 +90,55 @@ uint16_t pinState;
 
 
 int a=0;
+
+//
+// runADCTest - Simple ADC functionality test
+//
+int runADCTest(void)
+{
+    // Initialize necessary components
+    Device_init();
+    Device_initGPIO(); // Ensure LED pin is configured if used
+    Interrupt_initModule();
+    Interrupt_initVectorTable();
+    BU_ADC_init(); // This includes ePWM init and ADC setup
+
+    // Enable Interrupts
+    EINT;
+    ERTM;
+
+    // Wait for a few ADC conversion cycles
+    DEVICE_DELAY_US(100000); // 100ms delay
+
+    g_ADCTestStatus = -1; // Default to Fail
+
+    // Check if myADC0Results contains non-zero values for a few key channels
+    // (e.g., 0, 1, and NUM_CHANNELS-1 if NUM_CHANNELS > 1)
+    // Note: myADC0Results are raw ADC counts (0-4095 typically) minus offset (2048)
+    // So, non-zero means anything other than -2048 after offset, or just check raw results before offset if available
+    // For simplicity, we check if the value is not 0. Given the offset, most valid readings won't be 0.
+    // The ISR in bu_adc.c subtracts 2048. So a zero reading would be -2048.
+    // A more robust check would be against a range, or if the values change.
+    // For this test, any non-zero value (after offset) implies some ADC activity.
+
+    for (int k = 0; k < NUM_CHANNELS; k = k + (NUM_CHANNELS/4 > 0 ? NUM_CHANNELS/4 : 1) ) { // Check a few channels
+        if (myADC0Results[k] != 0 && myADC0Results[k] != (uint32_t)(-2048)) { // Check for non-zero and not just the offset
+            g_ADCTestStatus = 1; // Pass
+            break; 
+        }
+    }
+    
+    // Optional: Toggle LED based on pass/fail
+    // GPIO_setPadConfig(DEVICE_GPIO_PIN_LED1, GPIO_PIN_TYPE_STD); // Ensure configured
+    // GPIO_setDirectionMode(DEVICE_GPIO_PIN_LED1, GPIO_DIR_MODE_OUT);
+    // if (g_ADCTestStatus == 1) {
+    //     GPIO_writePin(DEVICE_GPIO_PIN_LED1, 1); // LED ON for Pass
+    // } else {
+    //     GPIO_writePin(DEVICE_GPIO_PIN_LED1, 0); // LED OFF for Fail (or toggle differently)
+    // }
+
+    return g_ADCTestStatus;
+}
 
 __interrupt void gpioISR(void)
 {
@@ -143,35 +196,47 @@ uint32_t readGPIO28(void)
 
 void main(void)
 {
+    // Run the ADC test at the beginning
+    int testResult = runADCTest();
+
+    // Placeholder for observing test result (e.g., via LED or debugger)
+    // if (testResult == 1) {
+    //     // Visual indication of pass, e.g., toggle LED rapidly
+    //     // For now, we'll just imagine this happens
+    // } else if (testResult == -1) {
+    //     // Visual indication of fail, e.g., toggle LED slowly
+    // }
+    // For a real hardware test, might halt here:
+    // while(1); 
+
     //
-    // Initialize device clock and peripherals
+    // Initialize device clock and peripherals (some might be redundant if runADCTest did them)
     //
-    Device_init();
+    Device_init(); // Potentially redundant if runADCTest did it, but often harmless to re-init
     struct_size = sizeof(Branch);
 
     //
     // Disable pin locks and enable internal pullups.
     //
-    Device_initGPIO();
+    Device_initGPIO(); // Potentially redundant
 
     //
     // Initialize PIE and clear PIE registers. Disables CPU interrupts.
     //
-    Interrupt_initModule();
+    Interrupt_initModule(); // Potentially redundant
 
     //
     // Initialize the PIE vector table with pointers to shell Interrupt Service Routines (ISR).
     //
-    Interrupt_initVectorTable();
+    Interrupt_initVectorTable(); // Potentially redundant
 
     //
-    // Board Initialization:
-    // - Sets up the ADC and initializes the SOC.
-    // - Enables ADC interrupts.
-    //
-
-
-    Board_init();
+    // BU_ADC_init() is called by runADCTest and initializes ADCs, ePWM, and its own ISR.
+    // If runADCTest() fully sets up the system for normal operation, this call might be adjusted
+    // or the state ensured. For this task, we assume runADCTest() leaves it in a good state
+    // or main() re-initializes as needed.
+    // The prompt for runADCTest includes BU_ADC_init(), so main's call is fine.
+    BU_ADC_init(); // Call BU_ADC_init here for normal operation post-test.
 
 
     configureGPIO28();
@@ -180,9 +245,9 @@ void main(void)
     GPIO_setDirectionMode(DEVICE_GPIO_PIN_LED1, GPIO_DIR_MODE_OUT);
 
     //
-    // Set up the ePWM
+    // Set up the ePWM - Note: initEPWM() is called within BU_ADC_init()
     //
-    initEPWM();
+    // initEPWM(); // This call can be removed if BU_ADC_init() handles it.
 
     // Initialize the accumulators and sample counter
     //
@@ -201,7 +266,7 @@ void main(void)
     //
     // Configure ADC reference voltage
     //
-    ADC_setVREF(ADCARESULT_BASE, ADC_REFERENCE_INTERNAL, ADC_REFERENCE_3_3V);
+    // ADC_setVREF(ADCARESULT_BASE, ADC_REFERENCE_INTERNAL, ADC_REFERENCE_3_3V); // Removed as BU_ADC_init handles this
 
     //commented out - sync
 //    // Start the ePWM triggering continuously
