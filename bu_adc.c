@@ -13,6 +13,16 @@
 // Included Files
 //
 #include <bu_adc.h>
+#include <stdio.h> // For printf
+
+// Define a debug print macro
+#ifdef DEBUG_ADC
+#define DEBUG_PRINTF(f_, ...) printf((f_), ##__VA_ARGS__)
+#else
+#define DEBUG_PRINTF(f_, ...) (void)0
+#endif
+
+static int adc_isr_counter = 0; // Counter for occasional printing
 
 //
 // Global Variables
@@ -62,6 +72,7 @@ static int debugCounter = 0;
 
      // Configure ADC reference voltage
      ADC_setVREF(ADCA_BASE, ADC_REFERENCE_INTERNAL, ADC_REFERENCE_3_3V);
+     ADC_setVREF(ADCE_BASE, ADC_REFERENCE_INTERNAL, ADC_REFERENCE_3_3V);
 
      // Delay for ADC power up
      DEVICE_DELAY_US(1000);
@@ -133,6 +144,9 @@ static int debugCounter = 0;
      // Initialize sFlag structure
      static dww_structflag flagStruct = {0};
      sFlag = &flagStruct;
+
+    // Initialize ePWM
+    initEPWM();
 
      // Start ePWM in UP counting mode
      EPWM_enableADCTrigger(EPWM1_BASE, EPWM_SOC_A);
@@ -244,6 +258,11 @@ __interrupt void adcA1ISR(void)
     myADC0Results[16] = (signed int)ADC_readResult(ADCERESULT_BASE, ADC_SOC_NUMBER1) - 2048;
     myADC0Results[17] = (signed int)ADC_readResult(ADCARESULT_BASE, ADC_SOC_NUMBER13) - 2048;
 
+    // Occasional debug print for the first channel's raw value
+    if (adc_isr_counter % 1000 == 0) { // Print every 1000th ISR call
+        DEBUG_PRINTF("ADC_ISR: Raw Ch0 = %ld\r\n", myADC0Results[0]);
+    }
+
     //
     // For each channel, square the result and accumulate it.
     //
@@ -269,37 +288,43 @@ __interrupt void adcA1ISR(void)
             rms = sqrtf(avgSquare) * calib/10000;
             Branch.dww_channel[i].Current = (unsigned int)rms;
 
+            if (i == 0) { // For the first channel
+                DEBUG_PRINTF("ADC_ISR: Ch0 RMS = %d\r\n", Branch.dww_channel[i].Current);
+            }
+
             // Reset accumulator for next set of samples
             dwSumPhaseVolt[i] = 0;
         }
         sampleCount = 0;
     }
 
+    adc_isr_counter++;
+
     //
     // Clear the ADC interrupt flags.
     //
-    ADC_clearInterruptStatus(myADC0_BASE, ADC_INT_NUMBER1);
-    ADC_clearInterruptStatus(myADC1_BASE, ADC_INT_NUMBER1);
+    ADC_clearInterruptStatus(ADCA_BASE, ADC_INT_NUMBER1);
+    ADC_clearInterruptStatus(ADCE_BASE, ADC_INT_NUMBER1);
 
     //
     // Check and clear overflow flags if necessary.
     //
-    if(ADC_getInterruptOverflowStatus(myADC0_BASE, ADC_INT_NUMBER1))
+    if(ADC_getInterruptOverflowStatus(ADCA_BASE, ADC_INT_NUMBER1))
     {
-        ADC_clearInterruptOverflowStatus(myADC0_BASE, ADC_INT_NUMBER1);
-        ADC_clearInterruptStatus(myADC0_BASE, ADC_INT_NUMBER1);
+        ADC_clearInterruptOverflowStatus(ADCA_BASE, ADC_INT_NUMBER1);
+        ADC_clearInterruptStatus(ADCA_BASE, ADC_INT_NUMBER1);
     }
 
-    if(ADC_getInterruptOverflowStatus(myADC1_BASE, ADC_INT_NUMBER1))
+    if(ADC_getInterruptOverflowStatus(ADCE_BASE, ADC_INT_NUMBER1))
     {
-        ADC_clearInterruptOverflowStatus(myADC1_BASE, ADC_INT_NUMBER1);
-        ADC_clearInterruptStatus(myADC1_BASE, ADC_INT_NUMBER1);
+        ADC_clearInterruptOverflowStatus(ADCE_BASE, ADC_INT_NUMBER1);
+        ADC_clearInterruptStatus(ADCE_BASE, ADC_INT_NUMBER1);
     }
 
     //
     // Acknowledge the interrupt.
     //
-    Interrupt_clearACKGroup(INT_myADC0_1_INTERRUPT_ACK_GROUP);
+    Interrupt_clearACKGroup(INTERRUPT_ACK_GROUP1);
 }
 //
 // BU_ADC_processLoop - Main processing loop for ADC module
